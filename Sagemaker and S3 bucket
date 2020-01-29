@@ -1,0 +1,90 @@
+S3 bucket for storage of training data and model artifacts that are output of a training job
+Sagemaker for Notebook Instance
+
+Include sagemaker in the bucket name.
+Amazon SageMaker needs permission to access the bucket. You grant permission with an IAM role, which you create in the next step when you create an Amazon SageMaker notebook instance. This IAM role automatically gets permissions to access any bucket that has sagemaker in the name. It gets these permissions through the AmazonSageMakerFullAccess policy, which Amazon SageMaker attaches to the role. If you add a policy to the role that grants the SageMaker service principal S3FullAccess permission, the name of the bucket does not need to contain sagemaker.
+
+An Amazon SageMaker notebook instance is a fully managed machine learning (ML) Amazon Elastic Compute Cloud (Amazon EC2) compute instance that runs the Jupyter Notebook App. You use the notebook instance to create and manage Jupyter notebooks that you can use to prepare and process data and to train and deploy machine learning models.
+
+1. Open the Amazon SageMaker console at https://console.aws.amazon.com/sagemaker/.
+
+2. Choose Notebook instances, then choose Create notebook instance.
+
+3. On the Create notebook instance page, provide the following information (if a field is not mentioned, leave the default values):
+
+    a. For Notebook instance name, type a name for your notebook instance.
+
+    b. For Instance type, choose ml.t2.medium. This is the least expensive instance type that notebook instances support, and it suffices for this exercise.
+
+    c. For IAM role, choose Create a new role, then choose Create role.
+
+    d. Choose Create notebook instance.
+
+In a few minutes, Amazon SageMaker launches an ML compute instance—in this case, a notebook instance—and attaches an ML storage volume to it. The notebook instance has a preconfigured Jupyter notebook server and a set of Anaconda libraries.
+
+*To create a Jupyter notebook*
+
+1. Open the notebook instance.
+
+    a. Sign in to the Amazon SageMaker console at https://console.aws.amazon.com/sagemaker/.
+
+    b. Open the Notebook Instances, and then open the notebook instance you created by choosing either Open Jupyter for classic Juypter view or Open JupyterLab for JupyterLab view next to the name of the notebook instance.
+
+2. Create a notebook.
+
+    a. If you opened the notebook in Jupyter classic view, on the Files tab, choose New, and conda_python3. This preinstalled environment includes the default Anaconda installation and Python 3.
+
+    b. If you opened the notebook in JupyterLab view, on the File menu, choose New, and then choose Notebook. For Select Kernel, choose conda_python3. This preinstalled environment includes the default Anaconda installation and Python 3.
+
+3. In the Jupyter notebook, choose File and Save as, and name the notebook.
+
+4. Copy the following Python code and paste it into the first cell in your notebook. Add the name of the S3 bucket that you created in Set Up Amazon SageMaker, and run the code. The get_execution_role function retrieves the IAM role you created when you created your notebook instance.
+
+
+```import os
+import boto3
+import re
+import copy
+import time
+from time import gmtime, strftime
+from sagemaker import get_execution_role
+
+role = get_execution_role()
+
+region = boto3.Session().region_name
+
+bucket='bucket-name' # Replace with your s3 bucket name
+prefix = 'sagemaker/xgboost-mnist' # Used as part of the path in the bucket where you store data
+bucket_path = 'https://s3-{}.amazonaws.com/{}'.format(region,bucket) # The URL to access the bucket```
+
+
+Download the dataset to your notebook instance, review the data, transform it, and upload it to your S3 bucket.
+
+You transform the data by changing its format from numpy.array to comma-separated values (CSV). The XGBoost Algorithm expects input in either the LIBSVM or CSV format. LIBSVM is an open source machine learning library. In this exercise , you use CSV format because it's simpler.
+
+To download the dataset, copy and paste the following code into the notebook and run it:
+
+if pickled
+
+```%%time 
+import pickle, gzip, urllib.request, json
+import numpy as np
+
+# Load the dataset
+urllib.request.urlretrieve("<dataset>", "<dataset pickle>")
+with gzip.open('<dataset pickle>', 'rb') as f:
+    train_set, valid_set, test_set = pickle.load(f, '')
+print(train_set[0].shape)```
+
+The code does the following:
+
+Downloads the dataset (pickled) from the Database to your notebook.
+
+Unzips the file and reads the following datasets into the notebook's memory:
+
+train_set – You use these images of handwritten numbers to train a model.
+
+valid_set – The XGBoost Algorithm uses these images to evaluate the progress of the model during training.
+
+test_set – You use this set to get inferences to test the deployed model.
+
